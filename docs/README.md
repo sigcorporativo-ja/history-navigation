@@ -4,23 +4,28 @@
 
 ## Descripción
 
-Plugin para [Mapea](https://github.com/sigcorporativo-ja/Mapea4) desarrollado por la Consejería de Medioambiente y Ordenación del Territorio de la Junta de Andalucía.  
-
-Contiene los siguientes controles:  
-* Botones de zoom ![Botones](./images/zoom.png) 
+Plugin para [Mapea](https://github.com/sigcorporativo-ja/Mapea4) desarrollado por la Consejería de Medioambiente y Ordenación del Territorio de la Junta de Andalucía. Crea un panel propio que contiene los siguientes controles:  
+* Acercarse y alejarse ![Botones](./images/zoom.png) 
 * Zoom a la extensión del mapa ![Botones](./images/full_extent.png) 
 * Historial de navegación (anterior/posterior) ![Botones](./images/history.png) 
 * (Opcional) Selector desplegable de escala ![Botones](./images/scale_selector.png) 
 * (Opcional) Zoom a coordenada ![Botones](./images/zoom_coordenada.png)
 
-Además, el panel del plugin acepta otros controles que sean compatibles a nivel de diseño, y que pueden añadirse como un parámetro adicional en el constructor.  
+Además, el panel del plugin acepta otros controles que sean compatibles a nivel de diseño, y que pueden añadirse a través de un parámetro adicional en el constructor.  
+
+![Imagen](./images/history-navigation1.png)
 
 ## Recursos y uso
 
 - js: navigation.ol.js
 - css: navigation.min.css
 
-Creación del plugin:
+Parámetro | Descripción 
+--- | --- |
+**controls** | Array<M.control> - controles adicionales opcionales compatibles  
+**options** | {object} - Opciones de plugin:<br>**scaleCtl** - {boolean} - incluir selector de escala <br>**scaleConfig** - Array\<number\> - escalas del selector<br>**coordinatesCtl** - {boolean} - incluir zoom a la coordenada  
+
+Ejemplo:
 ```javascript
 // Configuración de las escalas
 var scaleConfig = {
@@ -31,12 +36,11 @@ var control = new M.control.Mouse();
 var navigationPlugin = new M.plugin.Navigation({
 	controls: [/*controles adicionales compatibles*/],
 	options: {
-		scaleCtl: true, // Activar selector de escala
+		scaleCtl: true, // Incluir selector de escala
 		scaleConfig: scaleConfig, // Escalas del selector
-        coordinatesCtl: true, // Avtivar zoom a coordenada
+        coordinatesCtl: true, // Incluir zoom a coordenada
 		
 	}
 });
 myMap.addPlugin(navigationPlugin);   
 ```
-![Imagen](./images/history-navigation1.png)
