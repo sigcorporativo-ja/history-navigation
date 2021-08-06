@@ -1,33 +1,33 @@
-goog.provide('P.control.NavigationZoomControl');
+/**
+ * @module M/control/NavigationZoomControl
+ */
+//import NavigationControl from 'facade/navigationcontrol';
+import NavigationImplZoomControl from 'impl/navigationZoomControl';
+import template from 'templates/navigationZoomControl';
 
-goog.require('P.control.NavigationControl');
+export default class NavigationZoomControl extends M.Control{
 /**
  * @classdesc
  * Main constructor of the class. Creates a NavigationZoomControl
  * control
  *
  * @constructor
- * @extends {M.control.NavigationControl}
  * @api stable
  */
-M.control.NavigationZoomControl = (function () {
+constructor() {
     // checks if the implementation exists
-    if (M.utils.isUndefined(M.impl.control.NavigationZoomControl)) {
+    if (M.utils.isUndefined(NavigationImplZoomControl)) {
         M.exception('La implementación usada no puede crear controles NavigationZoomControl');
     }
 
     // implementation of this control
-    var impl = new M.impl.control.NavigationZoomControl();
-    this.impl_ = impl;
+    const impl =  new NavigationImplZoomControl();
+    super(impl, 'NavigationZoomControl');
+    this.impl_=impl;
 
-    if (M.utils.isUndefined(this.impl_.doZoom)) {
-        M.exception('La implementación usada no posee el método doZoom');
-    }
+    this.NAME = 'navigationzoomcontrol';
+}
 
-    // calls the super constructor
-    goog.base(this, impl, M.control.NavigationZoomControl.NAME);
-});
-goog.inherits(M.control.NavigationZoomControl, M.control.NavigationControl);
 
 /**
  * This function creates the view to the specified map
@@ -37,9 +37,34 @@ goog.inherits(M.control.NavigationZoomControl, M.control.NavigationControl);
  * @returns {Promise} HTML template
  * @api stable
  */
-M.control.NavigationZoomControl.prototype.createView = function () {
-    return goog.base(this, "createView", M.control.NavigationZoomControl.TEMPLATE);
-};
+createView(map) {
+    if (!M.template.compileSync) { // JGL: retrocompatibilidad Mapea4
+      M.template.compileSync = (string, options) => {
+        let templateCompiled;
+        let templateVars = {};
+        let parseToHtml;
+        if (!M.utils.isUndefined(options)) {
+          templateVars = M.utils.extends(templateVars, options.vars);
+          parseToHtml = options.parseToHtml;
+        }
+        const templateFn = Handlebars.compile(string);
+        const htmlText = templateFn(templateVars);
+        if (parseToHtml !== false) {
+          templateCompiled = M.utils.stringToHtml(htmlText);
+        } else {
+          templateCompiled = htmlText;
+        }
+        return templateCompiled;
+      };
+    }
+    
+    return new Promise((success, fail) => {
+      const html = M.template.compileSync(template);
+      // Añadir código dependiente del DOM
+      this.addEvents(html);
+      success(html);
+    });
+  }
 
 /**
  * This function adds events to the control
@@ -49,14 +74,18 @@ M.control.NavigationZoomControl.prototype.createView = function () {
  * @param {HTMLElement} html
  * @api stable
  */
-M.control.NavigationZoomControl.prototype.addEvents = function (element) {
-
+addEvents(element) {
+    var this_ = this;
     var buttonZoomIn = element.getElementsByTagName('button')['m-navigationzoomin-button'];
-    goog.events.listen(buttonZoomIn, goog.events.EventType.CLICK, this.onZoomInClick, false, this);
+    buttonZoomIn.addEventListener('click', function(e) {
+        this_.onZoomInClick();
+     },false);
 
     var buttonZoomOut = element.getElementsByTagName('button')['m-navigationzoomout-button'];
-    goog.events.listen(buttonZoomOut, goog.events.EventType.CLICK, this.onZoomOutClick, false, this);
-};
+    buttonZoomOut.addEventListener('click', function(e) {
+        this_.onZoomOutClick();
+     },false);
+} 
 
 /**
  * This function do zoom in
@@ -65,9 +94,9 @@ M.control.NavigationZoomControl.prototype.addEvents = function (element) {
  * @function
  * @api stable
  */
-M.control.NavigationZoomControl.prototype.onZoomInClick = function () {
+onZoomInClick() {
     this.impl_.doZoom(0.5);
-};
+}
 
 /**
  * This function do zoom out
@@ -76,24 +105,8 @@ M.control.NavigationZoomControl.prototype.onZoomInClick = function () {
  * @function
  * @api stable
  */
-M.control.NavigationZoomControl.prototype.onZoomOutClick = function () {
+onZoomOutClick() {
     this.impl_.doZoom(2);
-};
-/**
- * Name to identify this control
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-M.control.NavigationZoomControl.NAME = 'navigationzoomcontrol';
-
-/**
- * Template for this controls
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-//M.control.NavigationZoomControl.TEMPLATE = '../src/navigation/templates/navigationZoomControl.html';
-M.control.NavigationZoomControl.TEMPLATE = 'navigationZoomControl.html';
+}
+ 
+}

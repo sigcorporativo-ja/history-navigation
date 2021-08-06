@@ -1,19 +1,10 @@
-goog.provide('P.impl.control.NavigationZoomExtent');
-
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationZoomExtent
- * control
- *
- * @constructor
- * @extends {M.impl.Control}
- * @api stable
+ * @module M/impl/control/NavigationZoomExtent
  */
-M.impl.control.NavigationZoomExtent = function () {
-	goog.base(this);
-};
-
-goog.inherits(M.impl.control.NavigationZoomExtent, M.impl.Control);
+export default class NavigationZoomExtent extends M.impl.Control {
+	constructor() {
+		super();
+	}
 
 /**
  * This function adds the control to the specified map
@@ -24,10 +15,10 @@ goog.inherits(M.impl.control.NavigationZoomExtent, M.impl.Control);
  * @param {HTMLElement} html of the plugin
  * @api stable
  */
-M.impl.control.NavigationZoomExtent.prototype.addTo = function (map, html) {
-	goog.base(this, 'addTo', map, html);
-};
-
+addTo(map, html) {
+	// super addTo - don't delete
+    super.addTo(map, html);
+}
 
 /**
  * This function applies zoom to the whole extent of the map
@@ -36,6 +27,7 @@ M.impl.control.NavigationZoomExtent.prototype.addTo = function (map, html) {
  * @function
  * @api stable
  */
-M.impl.control.NavigationZoomExtent.prototype.zoomToExtent = function () {
+zoomToExtent() {
 	this.facadeMap_.zoomToMaxExtent();
-};
+}
+}

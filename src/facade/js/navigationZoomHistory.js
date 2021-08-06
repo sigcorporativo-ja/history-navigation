@@ -1,28 +1,22 @@
-goog.provide('P.control.NavigationZoomHistory');
-
-goog.require('P.control.NavigationControl');
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationZoomHistory
- * control
- *
- * @constructor
- * @extends {M.control.NavigationControl}
- * @api stable
+ * @module M/control/NavigationZoomHistory
  */
-M.control.NavigationZoomHistory = (function() {
-	// checks if the implementation exists
-   if (M.utils.isUndefined(M.impl.control.NavigationZoomHistory)) {
-      M.exception('La implementación usada no puede crear controles NavigationZoomHistory');
-   }
+import NavigationImplZoomHistory from 'impl/navigationZoomHistory';
+import template from 'templates/navigationZoomHistory'
 
-   // implementation of this control
-   var impl = new M.impl.control.NavigationZoomHistory();
-
-   // calls the super constructor
-   goog.base(this, impl, M.control.NavigationZoomHistory.NAME);
-});
-goog.inherits(M.control.NavigationZoomHistory, M.control.NavigationControl);
+export default class NavigationZoomControl extends M.Control{
+   constructor() {
+      // checks if the implementation exists
+      if (M.utils.isUndefined(NavigationImplZoomHistory)) {
+          M.exception('La implementación usada no puede crear controles NavigationZoomHistory');
+      }
+  
+      // implementation of this control
+      const impl =  new NavigationImplZoomHistory();
+      super(impl, 'NavigationZoomHistory');
+  
+      this.NAME = 'navigationzoomhistory';
+  }
 
 /**
  * This function creates the view to the specified map
@@ -32,25 +26,33 @@ goog.inherits(M.control.NavigationZoomHistory, M.control.NavigationControl);
  * @returns {Promise} HTML template
  * @api stable
  */
-M.control.NavigationZoomHistory.prototype.createView = function() {
-	return goog.base(this, "createView", M.control.NavigationZoomHistory.TEMPLATE);
-};
+createView(map) {
+	if (!M.template.compileSync) { // JGL: retrocompatibilidad Mapea4
+      M.template.compileSync = (string, options) => {
+        let templateCompiled;
+        let templateVars = {};
+        let parseToHtml;
+        if (!M.utils.isUndefined(options)) {
+          templateVars = M.utils.extends(templateVars, options.vars);
+          parseToHtml = options.parseToHtml;
+        }
+        const templateFn = Handlebars.compile(string);
+        const htmlText = templateFn(templateVars);
+        if (parseToHtml !== false) {
+          templateCompiled = M.utils.stringToHtml(htmlText);
+        } else {
+          templateCompiled = htmlText;
+        }
+        return templateCompiled;
+      };
+    }
+    
+    return new Promise((success, fail) => {
+      const html = M.template.compileSync(template);
+      // Añadir código dependiente del DOM
+      success(html);
+    });
+}
 
-/**
- * Name to identify this control
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-M.control.NavigationZoomHistory.NAME = 'navigationzoomhistory';
 
-/**
- * Template for this controls
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-//M.control.NavigationZoomHistory.TEMPLATE = '../src/navigation/templates/navigationZoomHistory.html';
-M.control.NavigationZoomHistory.TEMPLATE = 'navigationZoomHistory.html';
+}

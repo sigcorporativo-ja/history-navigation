@@ -1,33 +1,24 @@
-goog.provide('P.control.NavigationZoomExtent');
-
-goog.require('P.control.NavigationControl');
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationZoomExtent
- * control to provides zoom extent
- *
- * @constructor
- * @extends {M.control.NavigationControl}
- * @api stable
+ * @module M/control/NavigationZoomExtent
  */
-M.control.NavigationZoomExtent = (function () {
-    // checks if the implementation exists
-    if (M.utils.isUndefined(M.impl.control.NavigationZoomExtent)) {
+//import NavigationControl from 'facade/navigationcontrol';
+import NavigationImplZoomExtent from 'impl/navigationZoomExtent';
+import template from 'templates/navigationZoomExtent';
+
+export default class NavigationZoomExtent extends M.Control{
+constructor() {
+    if (M.utils.isUndefined(NavigationImplZoomExtent)) {
         M.exception('La implementación usada no puede crear controles NavigationZoomExtent');
     }
 
     // implementation of this control
-    var impl = new M.impl.control.NavigationZoomExtent();
-    this.impl_ = impl;
+    const impl =  new NavigationImplZoomExtent();
+    super(impl, 'NavigationZoomExtent');
 
-    if (M.utils.isUndefined(this.impl_.zoomToExtent)) {
-        M.exception('La implementación usada no posee el método zoomToExtent');
-    }
+    this.impl_= impl;
+    this.NAME = 'navigationzoomextent';
+}
 
-    // calls the super constructor
-    goog.base(this, impl, M.control.NavigationZoomExtent.NAME);
-});
-goog.inherits(M.control.NavigationZoomExtent, M.control.NavigationControl);
 
 /**
  * This function creates the view to the specified map
@@ -37,9 +28,34 @@ goog.inherits(M.control.NavigationZoomExtent, M.control.NavigationControl);
  * @returns {Promise} HTML template
  * @api stable
  */
-M.control.NavigationZoomExtent.prototype.createView = function () {
-    return goog.base(this, "createView", M.control.NavigationZoomExtent.TEMPLATE);
-};
+createView(map) {
+    if (!M.template.compileSync) { // JGL: retrocompatibilidad Mapea4
+      M.template.compileSync = (string, options) => {
+        let templateCompiled;
+        let templateVars = {};
+        let parseToHtml;
+        if (!M.utils.isUndefined(options)) {
+          templateVars = M.utils.extends(templateVars, options.vars);
+          parseToHtml = options.parseToHtml;
+        }
+        const templateFn = Handlebars.compile(string);
+        const htmlText = templateFn(templateVars);
+        if (parseToHtml !== false) {
+          templateCompiled = M.utils.stringToHtml(htmlText);
+        } else {
+          templateCompiled = htmlText;
+        }
+        return templateCompiled;
+      };
+    }
+    
+    return new Promise((success, fail) => {
+      const html = M.template.compileSync(template);
+      // Añadir código dependiente del DOM
+      this.addEvents(html);
+      success(html);
+    });
+  }
 
 /**
  * This function adds events to the control
@@ -49,10 +65,13 @@ M.control.NavigationZoomExtent.prototype.createView = function () {
  * @param {HTMLElement} html
  * @api stable
  */
-M.control.NavigationZoomExtent.prototype.addEvents = function (element) {
+addEvents(element) {
+    var this_ = this;
     var button = element.getElementsByTagName('button')['m-navigationzoomextent-button'];
-    goog.events.listen(button, goog.events.EventType.CLICK, this.onClick, false, this);
-};
+    button.addEventListener('click', function(e) {
+        this_.onClick();
+     },false);
+}
 
 /**
  * This function applies zoom when click
@@ -61,24 +80,8 @@ M.control.NavigationZoomExtent.prototype.addEvents = function (element) {
  * @function
  * @api stable
  */
-M.control.NavigationZoomExtent.prototype.onClick = function () {
+onClick(){
     this.impl_.zoomToExtent();
-};
-/**
- * Name to identify this control
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-M.control.NavigationZoomExtent.NAME = 'navigationzoomextent';
+}
 
-/**
- * Template for this controls
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-//M.control.NavigationZoomExtent.TEMPLATE = '../src/navigation/templates/navigationZoomExtent.html';
-M.control.NavigationZoomExtent.TEMPLATE = 'navigationZoomExtent.html';
+}

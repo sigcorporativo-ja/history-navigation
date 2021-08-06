@@ -1,39 +1,20 @@
-goog.provide('P.impl.control.NavigationCoordinates');
-
-goog.require('P.impl.layer.Navigation');
-
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationCoordinates
- * control
- *
- * @constructor
- * @extends {M.impl.Control}
- * @api stable
+ * @module M/impl/control/NavigationCoordinates
  */
-M.impl.control.NavigationCoordinates = function () {
-	/**
-	 * Facade of the map
-	 * @private
-	 * @type {M.Map}
-	 */
-	this.facadeMap_ = null;
-
-	/**
-	 * Facade of the map
-	 * @private
-	 * @type {M.Map}
-	 */
-	this.element_ = null;
-
-	//TODO Controlar que se implementan las funciones necesarias
-
-	this.layer_ = new M.impl.layer.Navigation();
-
-	goog.base(this);
-};
-
-goog.inherits(M.impl.control.NavigationCoordinates, M.impl.Control);
+export default class NavigationCoordinates extends M.impl.Control {
+	constructor() {
+		super();
+		this.layer = new M.layer.Vector({
+			name:'coordinatesControlLayer',
+		});
+		this.layer.displayInLayerSwitcher = false;
+		let estilo = new M.style.Point({
+			fill: {  
+			color: 'red',
+			}
+		});
+		this.layer.setStyle(estilo);
+	}
 
 /**
  * This function adds the control to the specified map
@@ -44,12 +25,11 @@ goog.inherits(M.impl.control.NavigationCoordinates, M.impl.Control);
  * @param {HTMLElement} html of the plugin
  * @api stable
  */
-M.impl.control.NavigationCoordinates.prototype.addTo = function (map, html) {
+addTo(map, html) {
+	super.addTo(map, html);
 	this.facadeMap_ = map;
-	this.olMap = map.getMapImpl();
-	this.layer_.addTo(map);
-	goog.base(this, 'addTo', map, html);
-};
+	this.facadeMap_.addLayers(this.layer);
+}
 
 /**
  * This function center the map on the coordinates given
@@ -58,14 +38,25 @@ M.impl.control.NavigationCoordinates.prototype.addTo = function (map, html) {
  * @function
  * @api stable
  */
-M.impl.control.NavigationCoordinates.prototype.centerByCoords = function (lon, lat) {
+centerByCoords(lon, lat) {
 	this.centerClear();
 	if (lon !== 0 && lat !== 0) {
 		if (this.containsCoords(lon, lat)) {
 			var mapImpl = this.facadeMap_.getMapImpl();
 			var view = mapImpl.getView();
 			var center = [lon, lat];
-			this.layer_.drawResults(lon, lat);
+
+			var feature = new M.Feature("featureCenter", {
+				"type": "Feature",
+				"id": "1",
+				"geometry": {
+					"type": "Point",
+					"coordinates": [lon,lat ]
+				},
+				"geometry_name": "geometry"
+			});
+			this.layer.addFeatures([feature]);
+
 			var availableResolutions = this.facadeMap_.getResolutions();
 			var resolution = availableResolutions[availableResolutions.length - 2];
 			view.animate({
@@ -79,7 +70,7 @@ M.impl.control.NavigationCoordinates.prototype.centerByCoords = function (lon, l
 	} else {
 		M.dialog.info('Introduzca unas coordenadas');
 	}
-};
+}
 
 /**
  * This function checks if the coordinates are contained in the maxExtent of the map
@@ -88,12 +79,12 @@ M.impl.control.NavigationCoordinates.prototype.centerByCoords = function (lon, l
  * @function
  * @api stable
  */
-M.impl.control.NavigationCoordinates.prototype.containsCoords = function (lon, lat) {
+containsCoords(lon, lat) {
 	var maxExtent = this.facadeMap_.getMaxExtent();
 	var coordinates = [lon, lat];
 	var result = ol.extent.containsCoordinate(maxExtent, coordinates);
 	return result;
-};
+}
 
 /**
  * This function remove items drawn on the map
@@ -102,9 +93,9 @@ M.impl.control.NavigationCoordinates.prototype.containsCoords = function (lon, l
  * @function
  * @api stable
  */
-M.impl.control.NavigationCoordinates.prototype.centerClear = function () {
-	this.layer_.clear();
-};
+centerClear() {
+	this.layer.clear();
+}
 
 /**
  * This function returns the layer used
@@ -114,6 +105,7 @@ M.impl.control.NavigationCoordinates.prototype.centerClear = function () {
  * @returns {ol.layer.Vector}
  * @api stable
  */
-M.impl.control.NavigationCoordinates.prototype.getLayer = function () {
-	return this.layer_;
-};
+getLayer(){
+	return this.layer;
+}
+}

@@ -1,24 +1,28 @@
-goog.provide('P.control.NavigationCoordinates');
+/**
+ * @module M/control/NavigationCoordinates
+ */
+import NavigationImplCoordinates from 'impl/navigationCoordinates';
+import template from 'templates/navigationCoordinates';
 
-goog.require('P.control.NavigationControl');
+export default class NavigationZoomCoordinates extends M.Control{
 /**
  * @classdesc
- * Main constructor of the class. Creates a NavigationCoordinates
- * control to provides center to coordinates
+ * Main constructor of the class. Creates a NavigationZoomControl
+ * control
  *
  * @constructor
- * @extends {M.control.NavigationControl}
  * @api stable
  */
-M.control.NavigationCoordinates = (function () {
+constructor() {
+
 	// checks if the implementation exists
-	if (M.utils.isUndefined(M.impl.control.NavigationCoordinates)) {
+	if (M.utils.isUndefined(NavigationImplCoordinates)) {
 		M.exception('La implementación usada no puede crear controles NavigationCoordinates');
 	}
 
-	// implementation of this control
-	var impl = new M.impl.control.NavigationCoordinates();
-	this.impl_ = impl;
+	const impl =  new NavigationImplCoordinates();
+    super(impl, 'NavigationCoordinates');
+    this.impl_=impl;
 
 	if (M.utils.isUndefined(this.impl_.centerByCoords)) {
 		M.exception('La implementación usada no posee el método centerByCoords');
@@ -35,11 +39,10 @@ M.control.NavigationCoordinates = (function () {
 	 * @type {Element}
 	 */
 	this.coordYInput_ = null;
+	this.NAME = 'navigationcoordinates';
 
-	// calls the super constructor
-	goog.base(this, impl, M.control.NavigationCoordinates.NAME);
-});
-goog.inherits(M.control.NavigationCoordinates, M.control.NavigationControl);
+}
+
 
 /**
  * This function creates the view to the specified map
@@ -49,9 +52,34 @@ goog.inherits(M.control.NavigationCoordinates, M.control.NavigationControl);
  * @returns {Promise} HTML template
  * @api stable
  */
-M.control.NavigationCoordinates.prototype.createView = function () {
-	return goog.base(this, "createView", M.control.NavigationCoordinates.TEMPLATE);
-};
+createView() {
+	if (!M.template.compileSync) { // JGL: retrocompatibilidad Mapea4
+		M.template.compileSync = (string, options) => {
+		let templateCompiled;
+		let templateVars = {};
+		let parseToHtml;
+		if (!M.utils.isUndefined(options)) {
+			templateVars = M.utils.extends(templateVars, options.vars);
+			parseToHtml = options.parseToHtml;
+		}
+		const templateFn = Handlebars.compile(string);
+		const htmlText = templateFn(templateVars);
+		if (parseToHtml !== false) {
+			templateCompiled = M.utils.stringToHtml(htmlText);
+		} else {
+			templateCompiled = htmlText;
+		}
+		return templateCompiled;
+		};
+	}
+	
+	return new Promise((success, fail) => {
+		const html = M.template.compileSync(template);
+		// Añadir código dependiente del DOM
+		this.addEvents(html);
+		success(html);
+	});
+}
 
 
 /**
@@ -62,17 +90,23 @@ M.control.NavigationCoordinates.prototype.createView = function () {
  * @param {HTMLElement} html
  * @api stable
  */
-M.control.NavigationCoordinates.prototype.addEvents = function (element) {
+addEvents(element) {
+
+	let this_ = this;
 
 	this.coordXInput_ = element.getElementsByTagName('input')['m-navigation-coordinateX-input'];
 	this.coordYInput_ = element.getElementsByTagName('input')['m-navigation-coordinateY-input'];
 
 	var buttonApply = element.getElementsByTagName('button')['m-navigationcoordinatesapply-button'];
-	goog.events.listen(buttonApply, goog.events.EventType.CLICK, this.onCenterApply, false, this);
+	buttonApply.addEventListener('click', function(e) {
+        this_.onCenterApply();
+     },false);
 
 	var buttonClear = element.getElementsByTagName('button')['m-navigationcoordinatesclear-button'];
-	goog.events.listen(buttonClear, goog.events.EventType.CLICK, this.onCenterClear, false, this);
-};
+	buttonClear.addEventListener('click', function(e) {
+        this_.onCenterClear();
+     },false);
+}
 
 /**
  * This function center the map
@@ -81,10 +115,9 @@ M.control.NavigationCoordinates.prototype.addEvents = function (element) {
  * @function
  * @api stable
  */
-M.control.NavigationCoordinates.prototype.onCenterApply = function () {
-
+onCenterApply() {
 	this.impl_.centerByCoords(Number(this.coordXInput_.value), Number(this.coordYInput_.value));
-};
+}
 
 /**
  * This function remove values on coordinates input html elements
@@ -93,27 +126,9 @@ M.control.NavigationCoordinates.prototype.onCenterApply = function () {
  * @function
  * @api stable
  */
-M.control.NavigationCoordinates.prototype.onCenterClear = function () {
+onCenterClear() {
 	this.coordXInput_.value = "";
 	this.coordYInput_.value = "";
 	this.impl_.centerClear();
-};
-
-/**
- * Name to identify this control
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-M.control.NavigationCoordinates.NAME = 'navigationcoordinates';
-
-/**
- * Template for this controls
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-//M.control.NavigationCoordinates.TEMPLATE = '../src/navigation/templates/navigationCoordinates.html';
-M.control.NavigationCoordinates.TEMPLATE = 'navigationCoordinates.html';
+}
+}

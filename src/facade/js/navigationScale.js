@@ -1,38 +1,39 @@
-goog.provide('P.control.NavigationScale');
-
-goog.require('P.control.NavigationControl');
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationScale
- * control to provides zoom by scale
- *
- * @constructor
- * @extends {M.control.NavigationControl}
- * @api stable
+ * @module M/control/NavigationScale
  */
-M.control.NavigationScale = (function (map, scaleConfig) {
-	// checks if the implementation exists
-	if (M.utils.isUndefined(M.impl.control.NavigationScale)) {
-		M.exception('La implementación usada no puede crear controles NavigationScale');
+import NavigationImplScale from 'impl/navigationScale';
+import template from 'templates/navigationScale';
+
+export default class NavigationScale extends M.Control{
+	/**
+	 * @classdesc
+	 * Main constructor of the class. Creates a NavigationScale
+	 * control
+	 *
+	 * @constructor
+	 * @api stable
+	 */
+constructor(scaleConfig) {
+		// checks if the implementation exists
+		if (M.utils.isUndefined(NavigationImplScale)) {
+			M.exception('La implementación usada no puede crear controles NavigationScale');
+		}
+
+		scaleConfig = scaleConfig || {};
+		if (M.utils.isNullOrEmpty(scaleConfig) || M.utils.isNullOrEmpty(scaleConfig.scales)) {
+			scaleConfig.scales = [1000, 2000, 5000, 10000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000];
+		}
+
+		// implementation of this control
+		const impl =  new NavigationImplScale(scaleConfig);
+		super(impl, 'NavigationScale');
+		this.impl_=impl;
+
+		this.NAME = 'navigationScale';
+		this.defaultSCALES = [1000, 2000, 5000, 10000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000];
+		this.scaleConfig = scaleConfig;		
 	}
 
-	this.scaleConfig = scaleConfig || {};
-	if (M.utils.isNullOrEmpty(this.scaleConfig) || M.utils.isNullOrEmpty(this.scaleConfig.scales)) {
-		this.scaleConfig.scales = M.control.NavigationScale.SCALES;
-	}
-
-	// implementation of this control
-	var impl = new M.impl.control.NavigationScale(this.scaleConfig);
-	this.impl_ = impl;
-
-	if (M.utils.isUndefined(this.impl_.zoomToScale)) {
-		M.exception('La implementación usada no posee el método zoomToScale');
-	}
-
-	// calls the super constructor
-	goog.base(this, impl, M.control.NavigationScale.NAME);
-});
-goog.inherits(M.control.NavigationScale, M.control.NavigationControl);
 
 /**
  * This function creates the view to the specified map
@@ -42,9 +43,34 @@ goog.inherits(M.control.NavigationScale, M.control.NavigationControl);
  * @returns {Promise} HTML template
  * @api stable
  */
-M.control.NavigationScale.prototype.createView = function () {
-	return goog.base(this, "createView", M.control.NavigationScale.TEMPLATE);
-};
+createView () {
+	if (!M.template.compileSync) { // JGL: retrocompatibilidad Mapea4
+		M.template.compileSync = (string, options) => {
+			let templateCompiled;
+			let templateVars = {};
+			let parseToHtml;
+			if (!M.utils.isUndefined(options)) {
+				templateVars = M.utils.extends(templateVars, options.vars);
+				parseToHtml = options.parseToHtml;
+			}
+			const templateFn = Handlebars.compile(string);
+			const htmlText = templateFn(templateVars);
+			if (parseToHtml !== false) {
+				templateCompiled = M.utils.stringToHtml(htmlText);
+			} else {
+				templateCompiled = htmlText;
+			}
+			return templateCompiled;
+		};
+	}
+	
+	return new Promise((success, fail) => {
+		const html = M.template.compileSync(template);
+		// Añadir código dependiente del DOM
+		this.addEvents(html);
+		success(html);
+	});
+}
 
 /**
  * This function adds events to the control
@@ -54,11 +80,15 @@ M.control.NavigationScale.prototype.createView = function () {
  * @param {HTMLElement} html
  * @api stable
  */
-M.control.NavigationScale.prototype.addEvents = function (element) {
+addEvents(element) {
+	let this_ = this;
 	var buttonZoom2Scale = element.getElementsByTagName('select')['m-navigationscale-select'];
-	goog.events.listen(buttonZoom2Scale, goog.events.EventType.CHANGE, this.onScaleChange, false, this);
+	buttonZoom2Scale.addEventListener('change', function(e) {
+        this_.onScaleChange();
+     },false);
+
 	this.addScaleOptions(element);
-};
+}
 
 /**
  * This function adds several scale options to the select
@@ -68,7 +98,7 @@ M.control.NavigationScale.prototype.addEvents = function (element) {
  * @param {HTMLElement} html
  * @api stable
  */
-M.control.NavigationScale.prototype.addScaleOptions = function (element) {
+addScaleOptions(element) {
 	var buttonZoom2Scale = element.getElementsByTagName('select')['m-navigationscale-select'];
 	for (var i = 0; i < this.scaleConfig.scales.length; i++) {
 		var option = document.createElement("option");
@@ -77,7 +107,7 @@ M.control.NavigationScale.prototype.addScaleOptions = function (element) {
 		option.appendChild(txtNode);
 		buttonZoom2Scale.appendChild(option);
 	}
-};
+}
 
 /**
  * This function handles changes in the scale
@@ -86,36 +116,8 @@ M.control.NavigationScale.prototype.addScaleOptions = function (element) {
  * @function
  * @api stable
  */
-M.control.NavigationScale.prototype.onScaleChange = function (e) {
-	var elt = e.target;
-	var scale = elt.value;
+onScaleChange() {
+	let scale = document.getElementById("m-navigationscale-select").value;
 	this.impl_.zoomToScale(scale);
-};
-
-/**
- * Default scales for this controls
- * @const
- * @type {Array}
- * @public
- * @api stable
- */
-M.control.NavigationScale.SCALES = [1000, 2000, 5000, 10000, 25000, 50000, 100000, 150000, 250000, 500000, 1000000];
-
-/**
- * Name to identify this control
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-M.control.NavigationScale.NAME = 'navigationscale';
-
-/**
- * Template for this controls
- * @const
- * @type {string}
- * @public
- * @api stable
- */
-//M.control.NavigationScale.TEMPLATE = '../src/navigation/templates/navigationScale.html';
-M.control.NavigationScale.TEMPLATE = 'navigationScale.html';
+}
+}

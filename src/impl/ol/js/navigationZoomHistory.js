@@ -1,27 +1,11 @@
-goog.provide('P.impl.control.NavigationZoomHistory');
-
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationZoomHistory
- * control
- *
- * @constructor
- * @extends {M.impl.Control}
- * @api stable
+ * @module M/impl/control/NavigationZoomHistory
  */
-M.impl.control.NavigationZoomHistory = function () {
 
-	/**
-	 * Facade of the map
-	 * @private
-	 * @type {M.Map}
-	 */
-	this.facadeMap_ = null;
-
-	goog.base(this);
-};
-
-goog.inherits(M.impl.control.NavigationZoomHistory, M.impl.Control);
+export default class NavigationZoomHistory extends M.impl.Control {
+	constructor() {
+		super();
+	}
 
 /**
  * This function adds the control to the specified map
@@ -32,7 +16,8 @@ goog.inherits(M.impl.control.NavigationZoomHistory, M.impl.Control);
  * @param {HTMLElement} element - Container MeasureClear
  * @api stable
  */
-M.impl.control.NavigationZoomHistory.prototype.addTo = function (map, element) {
+addTo (map, element) {
+	super.addTo(map, element);
 	this.facadeMap_ = map;
 	var this_ = this;
 	var mapImpl = this.facadeMap_.getMapImpl();
@@ -79,13 +64,17 @@ M.impl.control.NavigationZoomHistory.prototype.addTo = function (map, element) {
 	});
 
 	var buttonPrevious = element.getElementsByTagName('button')['m-navigationzoomprevious-button'];
-	goog.events.listen(buttonPrevious, goog.events.EventType.CLICK, this.onPreviousClick, false, this);
+	buttonPrevious.addEventListener('click', function(e) {
+        this_.onPreviousClick();
+     },false);
 
 	var buttonNext = element.getElementsByTagName('button')['m-navigationzoomnext-button'];
-	goog.events.listen(buttonNext, goog.events.EventType.CLICK, this.onNextClick, false, this);
+	buttonNext.addEventListener('click', function(e) {
+        this_.onNextClick();
+     },false);
 
-	goog.base(this, 'addTo', map, element);
-};
+}
+
 /**
  * This function handles previous click
  *
@@ -93,9 +82,9 @@ M.impl.control.NavigationZoomHistory.prototype.addTo = function (map, element) {
  * @function
  * @api stable
  */
-M.impl.control.NavigationZoomHistory.prototype.onPreviousClick = function () {
+onPreviousClick() {
 	window.history.back();
-};
+}
 
 /**
  * This function handles next click
@@ -104,6 +93,7 @@ M.impl.control.NavigationZoomHistory.prototype.onPreviousClick = function () {
  * @function
  * @api stable
  */
-M.impl.control.NavigationZoomHistory.prototype.onNextClick = function () {
+onNextClick() {
 	window.history.forward();
-};
+}
+}

@@ -1,20 +1,10 @@
-goog.provide('P.impl.control.NavigationZoomControl');
-
 /**
- * @classdesc
- * Main constructor of the class. Creates a NavigationZoomControl
- * control
- *
- * @constructor
- * @extends {M.impl.Control}
- * @api stable
+ * @module M/impl/control/NavigationZoomControl
  */
-M.impl.control.NavigationZoomControl = function () {
-	goog.base(this);
-};
-
-goog.inherits(M.impl.control.NavigationZoomControl, M.impl.Control);
-
+export default class NavigationZoomControl extends M.impl.Control {
+	constructor() {
+		super();
+	}
 /**
  * This function adds the control to the specified map
  *
@@ -24,9 +14,10 @@ goog.inherits(M.impl.control.NavigationZoomControl, M.impl.Control);
  * @param {HTMLElement} html of the plugin
  * @api stable
  */
-M.impl.control.NavigationZoomControl.prototype.addTo = function (map, html) {
-	goog.base(this, 'addTo', map, html);
-};
+addTo(map, html) {
+    // super addTo - don't delete
+    super.addTo(map, html);
+  }
 
 /**
  * This function handles the zoom
@@ -35,7 +26,7 @@ M.impl.control.NavigationZoomControl.prototype.addTo = function (map, html) {
  * @function
  * @api stable
  */
-M.impl.control.NavigationZoomControl.prototype.doZoom = function (factor) {
+doZoom(factor) {
 	var zoomIn, zoomOut;
 	if (factor > 1) {
 		zoomOut = true;
@@ -50,7 +41,7 @@ M.impl.control.NavigationZoomControl.prototype.doZoom = function (factor) {
 	var currentResolution = view.getResolution();
 	var resolution = currentResolution;
 	if ((zoomOut && availableResolutions.indexOf(currentResolution) !== 0) || zoomIn && availableResolutions.indexOf(currentResolution) != availableResolutions.length - 1) {
-		var a = M.control.NavigationControl.closestResolution(availableResolutions, currentResolution);
+		var a = this.closestResolution(availableResolutions, currentResolution);
 		if (zoomOut) {
 			resolution = availableResolutions[availableResolutions.indexOf(a) - 1];
 		} else {
@@ -63,4 +54,21 @@ M.impl.control.NavigationZoomControl.prototype.doZoom = function (factor) {
 		resolution: resolution,
 		duration: 500
 	});
-};
+}
+
+// Add your own functions
+closestResolution(array, num) {
+    var minDiff = 1000;
+    var ans;
+    var i = 0;
+    for (i in array) {
+      var m = Math.abs(num - array[i]);
+      if (m < minDiff) {
+        minDiff = m;
+        ans = array[i];
+      }
+    }
+    return ans;
+  }
+
+}
